@@ -151,6 +151,26 @@ class WeComSmartsheetClient:
             "docid": docid, "sheet_id": sheet_id, "record_ids": record_ids,
         })
 
+    # ---------- 文档可见性（让人类成员也能看到应用建的表） ----------
+    def set_doc_company_editable(self, docid, log=print):
+        """把文档设为「企业内成员可编辑」（与 augJOD 同样策略：所有人可看可改）。
+
+        根因修复：自建应用用 create_doc 建的智能表格默认是「仅受邀可见」，
+        公司里的人类成员（包括你）在「文档」里根本看不到这张表，除非被显式
+        加为协作者。调用此接口把 docid 设为「企业内可编辑」后，任意公司成员
+        都能在「文档」中看到并编辑它，无需知道任何 userid。每轮同步幂等设置一次。
+        """
+        try:
+            self._api("/wedoc/mod_doc_join_rule", {
+                "docid": docid,
+                "enable_corp_internal": True,
+                "corp_internal_auth": 2,      # 2 = 企业内成员可读写
+                "enable_corp_external": False,
+            })
+            log(f"[share] 已设文档 {docid} 为企业内可编辑（公司成员可见）")
+        except Exception as e:
+            log(f"[share] 设置企业内可编辑失败（{str(e)[:160]}）；如看不到表，请手动在文档里『添加协作者』")
+
     # ---------- 读取（复用已有表时对账用） ----------
     def get_records(self, docid, sheet_id, limit=200):
         """分页读取子表全部记录。返回 [{'record_id':.., 'values':{field_title:[...]}}]。

@@ -10,7 +10,7 @@
 #  - 凭据通过「平台环境变量」注入（TAPD_API_USER / TAPD_API_PASSWORD /
 #    WECOM_CORPID / WECOM_CORPSECRET），不写进镜像、不进代码仓库
 #  - 缓存 / 中间文件 / 日志 落在 /app/data（Rainbond 据 VOLUME 自动持久化）
-#  - 复用现有表 augJOD（docid/sheet_id 已预置，可在平台环境变量覆盖）
+#  - 默认自建应用自动建表并设为「企业内可编辑」（公司成员都能看到，无需手动加协作者）
 # ============================================================
 FROM python:3.13-slim
 
@@ -29,8 +29,9 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ENV WECOM_DOCID=""
 ENV WECOM_SHEET_ID=""
 
-# 可选：填你的企微「账号(userid)」，新建的表会自动把你加为管理员，方便打开查看。
-# 查看路径：企业微信 → 文档 → 由应用创建的文档。留空也能同步，只是需自行在文档里找到它。
+# 可选：填你的企微「账号(userid)」，新建的表会把你额外加为管理员（双保险）。
+# 注意：即使留空也能看见表——代码已把表设为「企业内可编辑」，公司成员都可在
+# 企业微信 → 文档 中直接看到并编辑它。
 ENV WECOM_VIEWER_USERID=""
 
 WORKDIR /app

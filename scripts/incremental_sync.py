@@ -272,6 +272,14 @@ def run_sync(current_raw, config, cache_doc, client, dry_run=False, log=print, f
             cache_doc["sheet_id"] = sheet_id
             created_new = True
             log(f"[init] 已创建智能表格 docid={docid} sheet_id={sheet_id}")
+    # 【关键修复】自建应用建的表默认「仅受邀可见」，你（公司成员）在「文档」里看不到。
+    # 显式设为「企业内可编辑」（与 augJOD 同策略），公司成员即可看到并编辑。
+    # 每轮同步幂等设置，已设过的再设无副作用（覆盖新建表与历史已建表两种情况）。
+    if not dry_run:
+        try:
+            client.set_doc_company_editable(docid, log=log)
+        except Exception as e:
+            log(f"[share] 设置企业内可编辑异常（不影响同步）：{str(e)[:160]}")
     # 无论新建还是复用，每次同步都确保列齐全（补建缺失列，幂等；
     # 修复"新建表批量建列偶发丢尾列、后续不再补"的 bug）
     if not dry_run:
