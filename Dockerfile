@@ -32,9 +32,10 @@ WORKDIR /app
 # 复制同步代码与运行脚本（不含任何凭据）
 COPY scripts/ /app/scripts/
 COPY server/sync_runner.sh /app/server/sync_runner.sh
+COPY server/start.sh /app/server/start.sh
 
 # 赋可执行权限
-RUN chmod +x /app/scripts/*.py /app/server/sync_runner.sh
+RUN chmod +x /app/scripts/*.py /app/server/sync_runner.sh /app/server/start.sh
 
 # 持久化目录（缓存 / 中间文件 / 日志）——Rainbond 会据此自动创建持久化存储
 RUN mkdir -p /app/data
@@ -42,8 +43,11 @@ VOLUME ["/app/data"]
 
 # 安装定时任务（每天 22:10，时区见 ENV TZ）
 COPY server/crontab /etc/cron.d/tapd-sync
-RUN chmod 0644 /etc/cron.d/tapd-sync \
- && crontab /etc/cron.d/tapd-sync
+RUN chmod 0644 /etc/cron.d/tapd-sync
 
-# 前台运行 cron，保持容器存活（非 Web 服务）
-CMD ["/usr/sbin/cron", "-f"]
+# 启动脚本：先打印 bootstrap 日志 + 运行时装载 crontab，再 exec cron -f
+# （运行时装载比 docker build 时装载更可靠，且启动即打 bootstrap 日志）
+CMD ["/app/server/start.sh"]
+
+# 旧写法（已由 start.sh 取代）：前台 cron
+# CMD ["/usr/sbin/cron", "-f"]
