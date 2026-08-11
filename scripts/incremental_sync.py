@@ -272,12 +272,13 @@ def run_sync(current_raw, config, cache_doc, client, dry_run=False, log=print, f
             cache_doc["sheet_id"] = sheet_id
             created_new = True
             log(f"[init] 已创建智能表格 docid={docid} sheet_id={sheet_id}")
-    else:
-        # 已存在表格：补齐可能新增的列（如 需求申请人员 / 状态变更时间）
-        if not dry_run:
-            added = ensure_columns(client, docid, sheet_id, log=log)
-            if added:
-                log(f"[columns] 自动补齐新增列：{', '.join(added)}")
+    # 无论新建还是复用，每次同步都确保列齐全（补建缺失列，幂等；
+    # 修复"新建表批量建列偶发丢尾列、后续不再补"的 bug）
+    if not dry_run:
+        added = ensure_columns(client, docid, sheet_id, log=log)
+        if added:
+            log(f"[columns] 自动补齐新增列：{', '.join(added)}")
+    if not created_new:
         # 复用已有表（如 augJOD）：先读回现有记录、按 TAPD需求ID 对齐 record_id，
         # 避免把已有行当「新增」重复写入。需要自建应用对目标表拥有读权限。
         # 机器人身份通常无读权限(851008)：读不到就退回本地 record_id 缓存，不阻断同步

@@ -242,7 +242,8 @@ def ensure_columns(client, docid, sheet_id, columns=COLUMNS, log=print):
 
 def ensure_table(client, doc_name="TAPD需求进度同步表", admin_users=None):
     """若未传入 docid，则创建智能表格并按 COLUMNS 建好列结构。
-    返回 (docid, sheet_id)。"""
+    返回 (docid, sheet_id)。
+    逐列建立（单失败仅记日志不阻断），确保『最后同步时间』等尾列一定建出。"""
     docid, _, _ = client.create_doc(doc_name, admin_users=admin_users)
     sheets = client.get_sheet(docid)
     if not sheets:
@@ -251,9 +252,14 @@ def ensure_table(client, doc_name="TAPD需求进度同步表", admin_users=None)
     fields = client.get_fields(docid, sheet_id)
     # 默认自带一个文本字段，重命名为第一列
     if fields:
-        client.rename_field(docid, sheet_id, fields[0]["field_id"], COLUMNS[0][0])
-    # 其余列
-    extra = [{"field_title": t, "field_type": ft} for t, ft in COLUMNS[1:]]
-    if extra:
-        client.add_fields(docid, sheet_id, extra)
+        try:
+            client.rename_field(docid, sheet_id, fields[0]["field_id"], COLUMNS[0][0])
+        except Exception as e:
+            client._log(f"[ensure_table] 重命名首列失败（{str(e)[:120]}）")
+    # 逐列建立：避免批量 add_fields 偶发丢尾列（如『最后同步时间』）
+    for t, ft in COLUMNS[1:]:
+        try:
+            client.add_fields(docid, sheet_id, [{"field_title": t, "field_type": ft}])
+        except Exception as e:
+            client._log(f"[ensure_table] 建列失败（{t}）：{str(e)[:120]}")
     return docid, sheet_id
