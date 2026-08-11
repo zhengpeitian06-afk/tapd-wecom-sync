@@ -111,6 +111,7 @@ def build_values(story, project_id, config, project_name):
         "最后修改": to_ms_timestamp(modified),
         "状态变更时间": to_ms_timestamp(status_change),
         "TAPD需求ID": [{"type": "text", "text": story.get("id", "")}],
+        "最后同步时间": [{"type": "text", "text": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}],
     }
 
 
@@ -204,20 +205,19 @@ def reconcile_cache(client, docid, sheet_id, cache, log=print):
 
 
 def stamp_sync_time(client, docid, sheet_id, cache, log=print):
-    """运行心跳：把全部记录的『最后同步时间』列刷成当前时间。
+    """运行心跳：把全部记录的『最后同步时间』列刷成当前时间（文本格式）。
 
     用途：Rainbond 日志 Tab 抓不到纯 cron 容器的 stdout、Web 终端又连不上时，
     用户无法看到任何运行证据。此函数在每次同步（无论是否有数据变更）后刷新整表
-    该列为当前时间戳，用户打开智能表格即可肉眼确认定时任务在跑；配合日志中的
+    该列为当前时间文本，用户打开智能表格即可肉眼确认定时任务在跑；配合日志中的
     [diff] 新增/更新/移除计数即可区分「在跑但无变更」与「真有数据变更」。
     """
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    ts = to_ms_timestamp(now)
     recs = []
     for tid, c in cache.items():
         rid = c.get("record_id")
         if rid:
-            recs.append({"record_id": rid, "values": {"最后同步时间": ts}})
+            recs.append({"record_id": rid, "values": {"最后同步时间": now}})
     if not recs:
         return
     for i in range(0, len(recs), 100):
@@ -274,7 +274,7 @@ def run_sync(current_raw, config, cache_doc, client, dry_run=False, log=print, f
     else:
         # 已存在表格：补齐可能新增的列（如 需求申请人员 / 状态变更时间）
         if not dry_run:
-            added = ensure_columns(client, docid, sheet_id)
+            added = ensure_columns(client, docid, sheet_id, log=log)
             if added:
                 log(f"[columns] 自动补齐新增列：{', '.join(added)}")
         # 复用已有表（如 augJOD）：先读回现有记录、按 TAPD需求ID 对齐 record_id，
@@ -383,7 +383,21 @@ def run_sync(current_raw, config, cache_doc, client, dry_run=False, log=print, f
     cache_doc["last_sync_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     # 运行心跳：刷新整表『最后同步时间』列，用户可在智能表格直接看到同步在跑
     try:
-        stamp_sync_time(client, docid, sheet_id, cache, log=log)
+        stamp_cache = cache
+        # 若本地缓存无 record_id（reconcile 未成功读回，例如自建应用仅有写权限无读权限），
+        # 尝试直接读表一次性拿全部 record_id 作为兜底，确保心跳列能覆盖全表。
+        if not any(c.get("record_id") for c in cache.values()):
+            try:
+                recs = client.get_records(docid, sheet_id)
+                stamp_cache = {
+                    cell_text(r.get("values", {}).get("TAPD需求ID")): {"record_id": r.get("record_id")}
+                    for r in recs
+                    if cell_text(r.get("values", {}).get("TAPD需求ID"))
+                }
+                log(f"[stamp] 本地缓存无 record_id，已通过 get_records 兜底获取 {len(stamp_cache)} 行")
+            except Exception as e:
+                log(f"[stamp] 兜底读取失败（可能无读权限）：{str(e)[:160]}")
+        stamp_sync_time(client, docid, sheet_id, stamp_cache, log=log)
     except Exception as e:
         log(f"[stamp] 心跳标记异常（不影响主同步）：{str(e)[:160]}")
     return {"new": added, "changed": updated, "removed": deleted, "total": len(cache)}

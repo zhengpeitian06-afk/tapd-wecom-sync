@@ -201,20 +201,33 @@ COLUMNS = [
     ("最后修改", "FIELD_TYPE_DATE_TIME"),
     ("状态变更时间", "FIELD_TYPE_DATE_TIME"),  # 最近一次「状态」字段变更的时间（≠ 最后修改）
     ("TAPD需求ID", "FIELD_TYPE_TEXT"),
-    ("最后同步时间", "FIELD_TYPE_DATE_TIME"),  # 运行心跳列：每次同步刷新为当前时间，用于确认定时任务在跑
+    ("最后同步时间", "FIELD_TYPE_TEXT"),  # 运行心跳列（用文本类型避免日期列建列限制），每次同步刷新为当前时间，确认定时任务在跑
 ]
 
 
-def ensure_columns(client, docid, sheet_id, columns=COLUMNS):
-    """确保目标表中存在 COLUMNS 定义的所有列；缺失的列自动补建。
+def ensure_columns(client, docid, sheet_id, columns=COLUMNS, log=print):
+    """确保目标表中存在 COLUMNS 定义的所有列；缺失的列逐列补建。
+
+    单列表失败仅记日志、不阻断其余列与主同步（避免某列建列异常拖垮整个流程）。
     返回本次新增的列标题列表（用于日志）。
-    对已有表格（如开发期已写入 231 行的表）同样有效，不会破坏已有数据。"""
-    existing = client.get_fields(docid, sheet_id)
+    """
+    try:
+        existing = client.get_fields(docid, sheet_id)
+    except Exception as e:
+        log(f"[columns] 读取现有列失败（{str(e)[:160]}），跳过本轮补列")
+        return []
     existing_titles = {f.get("field_title") for f in existing}
-    missing = [{"field_title": t, "field_type": ft} for t, ft in columns if t not in existing_titles]
-    if missing:
-        client.add_fields(docid, sheet_id, missing)
-    return [m["field_title"] for m in missing]
+    added = []
+    for t, ft in columns:
+        if t in existing_titles:
+            continue
+        try:
+            client.add_fields(docid, sheet_id, [{"field_title": t, "field_type": ft}])
+            added.append(t)
+            log(f"[columns] 已补建列：{t}")
+        except Exception as e:
+            log(f"[columns] 补建列失败（{t}）：{str(e)[:160]}")
+    return added
 
 
 def ensure_table(client, doc_name="TAPD需求进度同步表"):
