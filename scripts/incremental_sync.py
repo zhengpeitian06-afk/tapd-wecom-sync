@@ -120,11 +120,20 @@ def build_wecom_client(config, log=print):
         return MockWeComClient(log=log)
     corpid = os.environ.get("WECOM_CORPID") or config.get("wecom_corpid")
     corpsecret = os.environ.get("WECOM_CORPSECRET") or config.get("wecom_corpsecret")
-    if not corpid or not corpsecret:
-        raise RuntimeError(
-            "缺少企微凭据：请设置 WECOM_CORPID / WECOM_CORPSECRET（自建应用 corpid + corpsecret）"
-        )
-    return WeComSmartsheetClient(corpid, corpsecret, log=log)
+    if corpid and corpsecret:
+        return WeComSmartsheetClient(corpid, corpsecret, log=log)
+    # 无自建应用凭据时，回退到本机 WorkBuddy 企微连接器的 wecom-cli（机器人身份）
+    try:
+        from wecomcli_client import WeComCliClient, cli_available
+        if cli_available():
+            log("[client] 未配置 WECOM_CORPID/CORPSECRET，改用本机 wecom-cli（企微连接器机器人身份）")
+            return WeComCliClient(log=log)
+    except ImportError:
+        pass
+    raise RuntimeError(
+        "缺少企微凭据：请设置 WECOM_CORPID / WECOM_CORPSECRET（自建应用），"
+        "或确保本机可用 wecom-cli（WorkBuddy 企微连接器）"
+    )
 
 
 class MockWeComClient:
@@ -194,7 +203,31 @@ def reconcile_cache(client, docid, sheet_id, cache, log=print):
     return cache
 
 
-def run_sync(current_raw, config, cache_doc, client, dry_run=False, log=print):
+def guard_deletions(removed_ids, cache_ids, current_ids, fetch_errors, force, log=print):
+    """删除护栏：判断本次是否允许执行删除。
+
+    真实事故场景：TAPD 拉取因 SSL/网络/限流失败 → 输入只有 0 条 → diff 认为
+    全部记录都被移除 → 把企微表 231 行全删光。因此删除必须满足全部条件：
+      1) 本次拉取无任何失败（fetch_errors == 0）
+      2) 当前数据非空
+      3) 删除量不超过缓存的 20%
+    不满足则本轮跳过删除（新增/更新照常），下轮数据正常时自然收敛。--force 可强制。
+    """
+    if not removed_ids:
+        return True, ""
+    if force:
+        return True, "--force 强制执行删除"
+    if fetch_errors:
+        return False, f"本次 TAPD 拉取有 {fetch_errors} 次失败，数据不完整，拒绝删除"
+    if not current_ids:
+        return False, "本次拉取结果为空，拒绝删除（疑似拉取失败）"
+    if cache_ids and len(removed_ids) > max(5, 0.2 * len(cache_ids)):
+        return False, (f"待删除 {len(removed_ids)} 条，超过缓存总量 {len(cache_ids)} 的 20% 阈值，"
+                       f"拒绝删除（如确为正常下线，请加 --force）")
+    return True, ""
+
+
+def run_sync(current_raw, config, cache_doc, client, dry_run=False, log=print, force=False):
     sheet_id = cache_doc.get("sheet_id")
     docid = cache_doc.get("docid")
     cache = cache_doc.get("records", {})
@@ -219,8 +252,12 @@ def run_sync(current_raw, config, cache_doc, client, dry_run=False, log=print):
                 log(f"[columns] 自动补齐新增列：{', '.join(added)}")
         # 复用已有表（如 augJOD）：先读回现有记录、按 TAPD需求ID 对齐 record_id，
         # 避免把已有行当「新增」重复写入。需要自建应用对目标表拥有读权限。
+        # 机器人身份通常无读权限(851008)：读不到就退回本地 record_id 缓存，不阻断同步
         if not dry_run and not created_new:
-            reconcile_cache(client, docid, sheet_id, cache, log=log)
+            try:
+                reconcile_cache(client, docid, sheet_id, cache, log=log)
+            except Exception as e:
+                log(f"[reconcile] 跳过读回对账（{str(e)[:160]}），改用本地 record_id 缓存 {len(cache)} 条")
 
     pid_to_name = {p["id"]: p["name"] for p in config.get("projects", [])}
 
@@ -265,11 +302,19 @@ def run_sync(current_raw, config, cache_doc, client, dry_run=False, log=print):
            (cur["status_change"] != c.get("status_change", "")):
             changed_ids.append(tid)
 
+    fetch_errors = int(current_raw.get("fetch_errors", 0)) if isinstance(current_raw, dict) else 0
     log(f"[diff] 当前TAPD含OA需求: {len(current_ids)} | 缓存: {len(cache_ids)}")
     log(f"[diff] 新增: {len(new_ids)} | 变更: {len(changed_ids)} | 移除: {len(removed_ids)} | 跳过(无OA单号): {skipped_no_oa}")
 
+    allow_delete, deny_reason = guard_deletions(
+        removed_ids, cache_ids, current_ids, fetch_errors, force, log=log)
+    if removed_ids and not allow_delete:
+        log(f"[guard] ⛔ 跳过删除：{deny_reason}")
+        removed_ids = set()
+
     if dry_run:
-        return {"new": len(new_ids), "changed": len(changed_ids), "removed": len(removed_ids)}
+        return {"new": len(new_ids), "changed": len(changed_ids), "removed": len(removed_ids),
+                "blocked": deny_reason if not allow_delete else ""}
 
     added = updated = deleted = 0
     if new_ids:
@@ -318,6 +363,8 @@ def main():
     ap.add_argument("--config", default=os.path.join(HERE, "project_oa_config.json"))
     ap.add_argument("--cache", default=os.path.join(HERE, "wecom_sync_cache.json"))
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--force", action="store_true",
+                    help="跳过删除安全护栏，强制执行删除（确认 TAPD 侧确实已下线时使用）")
     args = ap.parse_args()
 
     config = load_json(args.config)
@@ -332,7 +379,7 @@ def main():
         cache_doc["sheet_id"] = env_sheet or ""
 
     client = build_wecom_client(config)
-    result = run_sync(current_raw, config, cache_doc, client, dry_run=args.dry_run)
+    result = run_sync(current_raw, config, cache_doc, client, dry_run=args.dry_run, force=args.force)
 
     if not args.dry_run:
         with open(args.cache, "w", encoding="utf-8") as f:

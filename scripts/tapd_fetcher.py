@@ -32,11 +32,17 @@ import sys
 import time
 import base64
 import argparse
+import ssl
 import urllib.request
 import urllib.error
 import urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+# 拉取过程中的失败计数：任何一次请求失败都会 +1。
+# incremental_sync.py 会读取输出 JSON 里的 fetch_errors，若 >0 则拒绝执行删除，
+# 避免「拉取失败 → 数据变少 → 误删企微记录」这类灾难性后果。
+FETCH_ERRORS = []
 
 # 标准字段（同步表需要的）+ 全量自定义字段（确保「需求申请人员」所在的 custom_field_* 一定被拉到）
 STANDARD_FIELDS = ["id", "name", "status", "priority", "priority_label",
@@ -120,12 +126,40 @@ def _throttle():
     _last_req[0] = time.time()
 
 
+def _build_ssl_context():
+    """构建可用的 SSL 上下文。
+
+    macOS 上用 python.org 安装的 Python.framework 默认不带根证书，会报
+    CERTIFICATE_VERIFY_FAILED（未运行 Install Certificates.command）。
+    依次尝试：SSL_CERT_FILE 环境变量 → certifi → 系统 /etc/ssl/cert.pem。
+    """
+    ctx = ssl.create_default_context()
+    if os.environ.get("SSL_CERT_FILE"):
+        return ctx
+    try:
+        ctx.load_verify_locations(cafile=__import__("certifi").where())
+        return ctx
+    except Exception:
+        pass
+    for ca in ("/etc/ssl/cert.pem", "/usr/local/etc/openssl@3/cert.pem"):
+        if os.path.exists(ca):
+            try:
+                ctx.load_verify_locations(cafile=ca)
+                return ctx
+            except Exception:
+                continue
+    return ctx
+
+
+SSL_CTX = _build_ssl_context()
+
+
 def http_get(url, headers, retries=6):
     req = urllib.request.Request(url, headers=headers)
     for attempt in range(retries):
         _throttle()
         try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            with urllib.request.urlopen(req, timeout=30, context=SSL_CTX) as resp:
                 return json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
             if e.code == 429 or e.code >= 500:
@@ -309,10 +343,12 @@ def fetch_project_stories(workspace_id, auth_header):
             data = http_get(url, auth_header)
         except Exception as e:
             log(f"项目 {workspace_id} 第 {page} 页请求失败：{e}")
+            FETCH_ERRORS.append(f"{workspace_id}#p{page}: {e}")
             break
         if not data or data.get("status") != 1:
             info = data.get("info") if data else "无响应"
             log(f"项目 {workspace_id} 返回异常（status={data.get('status') if data else 'NA'}）：{info}")
+            FETCH_ERRORS.append(f"{workspace_id}#p{page}: status异常 {info}")
             break
         items = data.get("data") or []
         if not items:
@@ -411,11 +447,20 @@ def main():
     json.dump(status_cache, open(STATUS_TIME_CACHE_FILE, "w", encoding="utf-8"),
               ensure_ascii=False, indent=2)
 
-    out = {"stories": all_stories}
+    out = {
+        "stories": all_stories,
+        "fetch_errors": len(FETCH_ERRORS),
+        "fetch_error_detail": FETCH_ERRORS[:20],
+        "projects_queried": len(projects),
+        "fetched_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+    }
     with open(args.output, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False)
 
     log(f"共拉取 {len(all_stories)} 条需求，已写入 {args.output}")
+    if FETCH_ERRORS:
+        log(f"⚠️ 本次有 {len(FETCH_ERRORS)} 次请求失败，数据不完整——下游同步将拒绝执行删除操作。")
+        sys.exit(2)
 
 
 if __name__ == "__main__":
