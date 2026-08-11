@@ -265,8 +265,9 @@ def run_sync(current_raw, config, cache_doc, client, dry_run=False, log=print, f
         if dry_run:
             log("[init] dry-run：跳过自动建表")
         else:
+            viewer = os.environ.get("WECOM_VIEWER_USERID")
             log("[init] 未配置 docid/sheet_id，自动创建智能表格并建列…")
-            docid, sheet_id = ensure_table(client)
+            docid, sheet_id = ensure_table(client, admin_users=[viewer] if viewer else None)
             cache_doc["docid"] = docid
             cache_doc["sheet_id"] = sheet_id
             created_new = True

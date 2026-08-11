@@ -91,9 +91,19 @@ class WeComSmartsheetClient:
         return resp
 
     # ---------- 文档 / 子表 / 字段 ----------
-    def create_doc(self, doc_name):
-        """新建智能表格（doc_type=10），返回 (docid, url, scode)。"""
-        resp = self._api("/wedoc/create_doc", {"doc_type": 10, "doc_name": doc_name})
+    def create_doc(self, doc_name, admin_users=None):
+        """新建智能表格（doc_type=10），返回 (docid, url, scode)。
+
+        admin_users: 可选，传入企微账号(userid)列表，创建后立即把这些成员加为文档管理员，
+                      方便人类在「文档 → 由应用创建的文档」中打开查看。
+        """
+        body = {"doc_type": 10, "doc_name": doc_name}
+        if admin_users:
+            aus = admin_users if isinstance(admin_users, list) else [admin_users]
+            aus = [u for u in aus if u]
+            if aus:
+                body["admin_users"] = aus
+        resp = self._api("/wedoc/create_doc", body)
         return resp.get("docid"), resp.get("url"), resp.get("scode")
 
     def get_sheet(self, docid):
@@ -230,10 +240,10 @@ def ensure_columns(client, docid, sheet_id, columns=COLUMNS, log=print):
     return added
 
 
-def ensure_table(client, doc_name="TAPD需求进度同步表"):
+def ensure_table(client, doc_name="TAPD需求进度同步表", admin_users=None):
     """若未传入 docid，则创建智能表格并按 COLUMNS 建好列结构。
     返回 (docid, sheet_id)。"""
-    docid, _, _ = client.create_doc(doc_name)
+    docid, _, _ = client.create_doc(doc_name, admin_users=admin_users)
     sheets = client.get_sheet(docid)
     if not sheets:
         raise WeComError("新建文档后未获取到子表")

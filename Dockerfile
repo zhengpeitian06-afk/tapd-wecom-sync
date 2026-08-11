@@ -22,10 +22,16 @@ RUN apt-get update \
 ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# 复用 augJOD 智能表格（用户已选"复用现有表"）。
-# 如需改用新表，在 Rainbond「环境变量」中覆盖这两个值即可。
-ENV WECOM_DOCID="dccARy9b7NbhAPFS_noXF4INKLW__6AzlSZMmuwxov4_wUl1G6esRLxXu7XFXleFHqyYYfpgnJ25jG67EWv3p5DQ"
-ENV WECOM_SHEET_ID="augJOD"
+# 目标智能表格：默认留空 → 自建应用首次运行自动创建自己的表并拥有它
+# （最干净方案：augJOD 由企微连接器机器人创建、你无其权限入口，自建应用无法访问；
+#   自建应用自己建表则天然拥有全部权限，不依赖任何第三方）。
+# 若以后想复用某张已授权给本应用的表，在 Rainbond「环境变量」填 WECOM_DOCID / WECOM_SHEET_ID 覆盖即可。
+ENV WECOM_DOCID=""
+ENV WECOM_SHEET_ID=""
+
+# 可选：填你的企微「账号(userid)」，新建的表会自动把你加为管理员，方便打开查看。
+# 查看路径：企业微信 → 文档 → 由应用创建的文档。留空也能同步，只是需自行在文档里找到它。
+ENV WECOM_VIEWER_USERID=""
 
 WORKDIR /app
 
