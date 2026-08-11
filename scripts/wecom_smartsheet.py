@@ -247,6 +247,12 @@ def ensure_columns(client, docid, sheet_id, columns=COLUMNS, log=print):
         log(f"[columns] 读取现有列失败（{str(e)[:160]}），跳过本轮补列")
         return []
     existing_titles = {f.get("field_title") for f in existing}
+    existing_list = " | ".join(sorted([t for t in existing_titles if t]))
+    log(f"[columns] doc 当前列：{existing_list}")
+    missing = [(t, ft) for t, ft in columns if t not in existing_titles]
+    if missing:
+        miss_names = " | ".join([t for t, _ in missing])
+        log(f"[columns] 本轮将补建 {len(missing)} 列：{miss_names}")
     added = []
     for t, ft in columns:
         if t in existing_titles:
@@ -254,9 +260,9 @@ def ensure_columns(client, docid, sheet_id, columns=COLUMNS, log=print):
         try:
             client.add_fields(docid, sheet_id, [{"field_title": t, "field_type": ft}])
             added.append(t)
-            log(f"[columns] 已补建列：{t}")
+            log(f"[columns] ✅ 已补建列：{t} ({ft})")
         except Exception as e:
-            log(f"[columns] 补建列失败（{t}）：{str(e)[:160]}")
+            log(f"[columns] ❌ 补建列失败（{t}）：{str(e)[:160]}")
     return added
 
 

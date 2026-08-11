@@ -12,6 +12,11 @@
 set -uo pipefail
 
 echo "[bootstrap $(date '+%F %T')] container started, pid=$$"
+# 新代码标识 + 关键 env 摘要：构建后看日志 Tab 第一行就能确认是不是 f2cdda8+、是不是指向 augJOD
+echo "[bootstrap] tapd-wecom-sync NEW-VERSION: ensure_columns-aug-deployed (commit f2cdda8+)"
+echo "[bootstrap] WECOM_DOCID env = ${WECOM_DOCID:-<空>} (len=${#WECOM_DOCID})"
+echo "[bootstrap] WECOM_SHEET_ID  = ${WECOM_SHEET_ID:-<空>}"
+echo "[bootstrap] TAPD_API_USER   = ${TAPD_API_USER:-<空>}"
 
 # 持久化目录（即使 VOLUME 已挂载，显式 mkdir 保证安全）
 mkdir -p /app/data /app/data/logs /app/data/wecom_sync_cache.json 2>/dev/null || true

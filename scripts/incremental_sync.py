@@ -430,6 +430,14 @@ def main():
         cache_doc["docid"] = env_doc
         cache_doc["sheet_id"] = env_sheet or cache_doc.get("sheet_id", "")
 
+    # ============ 启动自检：让"现在跑的是新代码、目标表是 augJOD"一目了然 ============
+    # 解决 Rainbond 上"构建成功≠容器重启"，老代码仍在跑导致 augJOD 一直少 '最后同步时间' 列的问题。
+    print(f"[self-check] env WECOM_DOCID    = {(env_doc or '<空>')[:40]}…")
+    print(f"[self-check] env WECOM_SHEET_ID = {env_sheet or '<空>'}")
+    print(f"[self-check] cache docid        = {(cache_doc.get('docid') or '<空>')[:40]}…")
+    print(f"[self-check] final docid (use)  = {(cache_doc.get('docid') or '<空>')[:40]}…")
+    print(f"[self-check] final sheet_id     = {cache_doc.get('sheet_id') or '<空>'}")
+
     client = build_wecom_client(config)
     result = run_sync(current_raw, config, cache_doc, client, dry_run=args.dry_run, force=args.force)
 
