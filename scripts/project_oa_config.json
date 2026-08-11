@@ -1,0 +1,503 @@
+{
+  "default_oa_field": "custom_field_six",
+  "default_oa_field_name": "OA 需求单号",
+  "project_overrides": {
+    "32509644": {
+      "applicant_field": "custom_field_13"
+    },
+    "39911109": {
+      "applicant_field": "custom_field_14"
+    },
+    "40978290": {
+      "applicant_field": "custom_field_14"
+    },
+    "46006771": {
+      "applicant_field": "custom_field_9"
+    },
+    "58268343": {
+      "name": "FSSC财经共享",
+      "oa_field": "custom_field_11",
+      "oa_field_alt": "custom_field_six",
+      "oa_field_name": "OA需求单号",
+      "applicant_field": "custom_field_14"
+    },
+    "58661550": {
+      "applicant_field": "custom_field_9"
+    },
+    "60958276": {
+      "applicant_field": "custom_field_14"
+    },
+    "60965293": {
+      "applicant_field": "custom_field_9"
+    },
+    "61542087": {
+      "applicant_field": "custom_field_14"
+    },
+    "62440777": {
+      "applicant_field": "custom_field_9"
+    },
+    "66311611": {
+      "applicant_field": "custom_field_14"
+    },
+    "67426007": {
+      "applicant_field": "custom_field_9"
+    }
+  },
+  "projects": [
+    {
+      "id": "31392777",
+      "name": "DSS",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "32509644",
+      "name": "大数据中心",
+      "queried": true,
+      "oa_count": 36
+    },
+    {
+      "id": "32945061",
+      "name": "高级智能排产",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "34210414",
+      "name": "AI 智能外呼（新零售）",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "37718675",
+      "name": "零售AI助销智能体",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "38306753",
+      "name": "ROP-助销宝",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "39911109",
+      "name": "OA(营销产品组)",
+      "queried": true,
+      "oa_count": 15
+    },
+    {
+      "id": "40978290",
+      "name": "人服需求",
+      "queried": true,
+      "oa_count": 48
+    },
+    {
+      "id": "41563941",
+      "name": "AI 智能客服（卫浴售后）",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "42809776",
+      "name": "纷享销客- CRM",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "43006780",
+      "name": "智能体开发（50个以上）",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "43017184",
+      "name": "AI智能配方",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "45886469",
+      "name": "营销产品组",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "45984583",
+      "name": "零售AI陪练助手",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "46006771",
+      "name": "ROP-设计家",
+      "queried": true,
+      "oa_count": 4
+    },
+    {
+      "id": "47727155",
+      "name": "ITIL产品组",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "47922698",
+      "name": "DMT",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "47986076",
+      "name": "B1",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "48062260",
+      "name": "DPAI应用项目（2025年）",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "48126675",
+      "name": "OA系统管理",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "48467345",
+      "name": "CC Agent Monitor",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "49049687",
+      "name": "RTM",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "49915584",
+      "name": "AIX项目",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "51097240",
+      "name": "数据产品部",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "55765326",
+      "name": "协同办公",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "56406810",
+      "name": "FSSC智能审单",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "57690728",
+      "name": "Vibe Coding项目",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "58268343",
+      "name": "FSSC财经共享",
+      "queried": true,
+      "oa_count": 19
+    },
+    {
+      "id": "58298236",
+      "name": "零售酷家乐AI空间设计",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "58661550",
+      "name": "大供应链产品组",
+      "queried": true,
+      "oa_count": 27
+    },
+    {
+      "id": "59184887",
+      "name": "AI 智能线上客服（瓷砖售后）",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "59662702",
+      "name": "数字赋能平台",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "59701322",
+      "name": "Roma重构项目",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "60958276",
+      "name": "RTM-OMS",
+      "queried": true,
+      "oa_count": 4
+    },
+    {
+      "id": "60965293",
+      "name": "ROP",
+      "queried": true,
+      "oa_count": 55
+    },
+    {
+      "id": "61542087",
+      "name": "纷享销客-SFA",
+      "queried": true,
+      "oa_count": 2
+    },
+    {
+      "id": "62114492",
+      "name": "RTM-DBS",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "62440777",
+      "name": "Dpeng-财经",
+      "queried": true,
+      "oa_count": 2
+    },
+    {
+      "id": "63754279",
+      "name": "OSS",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "64159174",
+      "name": "零售AIGC内容中台",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "64580730",
+      "name": "东鹏WMS",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "65652418",
+      "name": "ROP-鹏筑宝",
+      "queried": true,
+      "oa_count": 0
+    },
+    {
+      "id": "66311611",
+      "name": "RTM-LTC",
+      "queried": true,
+      "oa_count": 11
+    },
+    {
+      "id": "67426007",
+      "name": "业务需求池",
+      "queried": true,
+      "oa_count": 8
+    }
+  ],
+  "status_mappings": {
+    "32509644": {
+      "developing": "开发中",
+      "rejected": "已拒绝",
+      "open": "未开始",
+      "progressing": "进行中",
+      "done": "已完成",
+      "status_4": "需求规划中",
+      "status_5": "方案设计中",
+      "status_6": "待开发",
+      "status_7": "待测试",
+      "status_8": "产品测试中",
+      "status_9": "业务测试中",
+      "status_10": "待发布",
+      "status_11": "已发布",
+      "status_12": "发布验证中"
+    },
+    "39911109": {
+      "developing": "开发中",
+      "rejected": "已拒绝",
+      "status_4": "方案设计中",
+      "status_6": "待开发",
+      "status_7": "待测试",
+      "status_9": "需求规划中",
+      "status_10": "产品测试中",
+      "status_11": "业务测试中",
+      "status_12": "待发布",
+      "status_13": "已发布",
+      "status_14": "发布验证中"
+    },
+    "40978290": {
+      "developing": "开发中",
+      "rejected": "已拒绝",
+      "open": "未开始",
+      "progressing": "进行中",
+      "done": "已完成",
+      "status_4": "需求规划中",
+      "status_5": "方案设计中",
+      "status_6": "待开发",
+      "status_7": "待测试",
+      "status_8": "产品测试中",
+      "status_9": "业务测试中",
+      "status_10": "待发布",
+      "status_11": "已发布",
+      "status_12": "发布验证中",
+      "resolved": "已解决"
+    },
+    "46006771": {
+      "status_5": "进行中",
+      "open": "未开始",
+      "done": "已完成",
+      "status_7": "需求规划中",
+      "status_8": "已拒绝",
+      "status_9": "方案设计中",
+      "status_10": "待开发",
+      "status_11": "开发中",
+      "status_12": "待测试",
+      "status_13": "产品测试中",
+      "status_14": "业务测试中",
+      "status_15": "待发布",
+      "status_16": "已发布",
+      "status_17": "发布验证中"
+    },
+    "58661550": {
+      "developing": "开发中",
+      "rejected": "已拒绝",
+      "open": "未开始",
+      "progressing": "进行中",
+      "done": "已完成",
+      "status_4": "需求规划中",
+      "status_5": "方案设计中",
+      "status_6": "待开发",
+      "status_7": "待测试",
+      "status_8": "产品测试中",
+      "status_9": "业务测试中",
+      "status_10": "待发布",
+      "status_11": "已发布",
+      "status_12": "发布验证中"
+    },
+    "58268343": {
+      "planning": "需求规划中",
+      "rejected": "已拒绝",
+      "status_2": "产品测试中",
+      "status_3": "业务测试中",
+      "open": "未开始",
+      "progressing": "进行中",
+      "done": "已完成",
+      "status_7": "方案设计中",
+      "status_8": "待开发",
+      "status_9": "开发中",
+      "status_10": "待测试",
+      "status_11": "待发布",
+      "status_12": "已发布",
+      "status_13": "发布验证中"
+    },
+    "60958276": {
+      "planning": "方案设计中",
+      "developing": "开发中",
+      "rejected": "已拒绝",
+      "open": "未开始",
+      "progressing": "进行中",
+      "done": "已完成",
+      "status_4": "待开发",
+      "status_6": "待测试",
+      "status_8": "需求规划中",
+      "status_9": "产品测试中",
+      "status_10": "业务测试中",
+      "status_11": "待发布",
+      "status_12": "已发布",
+      "status_13": "发布验证中"
+    },
+    "60965293": {
+      "status_4": "待处理",
+      "status_5": "进行中",
+      "status_6": "完成",
+      "status_7": "需求规划中",
+      "status_8": "已拒绝",
+      "status_9": "方案设计中",
+      "status_10": "待开发",
+      "status_11": "开发中",
+      "status_12": "待测试",
+      "status_13": "产品测试中",
+      "status_14": "业务测试中",
+      "status_15": "待发布",
+      "status_16": "已发布",
+      "status_17": "发布验证中",
+      "done": "已完成",
+      "open": "未开始"
+    },
+    "61542087": {
+      "status_5": "进行中",
+      "open": "未开始",
+      "done": "已完成",
+      "status_7": "方案设计中",
+      "status_8": "开发中",
+      "status_12": "待开发",
+      "status_13": "待测试",
+      "status_15": "需求规划中",
+      "status_16": "已拒绝",
+      "status_17": "产品测试中",
+      "status_18": "业务测试中",
+      "status_19": "待发布",
+      "status_20": "已发布",
+      "status_21": "发布验证中"
+    },
+    "62440777": {
+      "open": "未开始",
+      "done": "已完成",
+      "status_7": "开发中",
+      "status_11": "需求规划中",
+      "status_12": "已拒绝",
+      "status_13": "方案设计中",
+      "status_14": "待开发",
+      "status_15": "待测试",
+      "status_16": "产品测试中",
+      "status_17": "业务测试中",
+      "status_18": "待发布",
+      "status_19": "已发布",
+      "status_20": "进行中",
+      "status_21": "发布验证中"
+    },
+    "66311611": {
+      "status_5": "进行中",
+      "open": "未开始",
+      "done": "已完成",
+      "status_7": "方案设计中",
+      "status_8": "开发中",
+      "status_12": "待开发",
+      "status_13": "待测试",
+      "status_15": "需求规划中",
+      "status_16": "已拒绝",
+      "status_17": "产品测试中",
+      "status_18": "业务测试中",
+      "status_19": "待发布",
+      "status_20": "已发布",
+      "status_21": "发布验证中"
+    },
+    "67426007": {
+      "developing": "开发中",
+      "rejected": "已拒绝",
+      "status_4": "需求规划中",
+      "status_5": "方案设计中",
+      "status_6": "待开发",
+      "status_7": "待测试",
+      "status_8": "产品测试中",
+      "status_9": "业务测试中",
+      "status_10": "待发布",
+      "status_11": "已发布",
+      "status_12": "发布验证中"
+    }
+  }
+}

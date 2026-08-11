@@ -1,0 +1,39 @@
+{
+  "_note": "由 TAPD 连接器 get_stories_fields_lable 真实发现，2026-08-10。各项目『需求申请人员』对应的自定义字段 key。fetcher 运行时若配置已含 applicant_field 则直接采用，不再调用发现接口。",
+  "32509644": {
+    "applicant_field": "custom_field_13"
+  },
+  "39911109": {
+    "applicant_field": "custom_field_14"
+  },
+  "40978290": {
+    "applicant_field": "custom_field_14"
+  },
+  "46006771": {
+    "applicant_field": "custom_field_9"
+  },
+  "58268343": {
+    "applicant_field": "custom_field_14"
+  },
+  "58661550": {
+    "applicant_field": "custom_field_9"
+  },
+  "60958276": {
+    "applicant_field": "custom_field_14"
+  },
+  "60965293": {
+    "applicant_field": "custom_field_9"
+  },
+  "61542087": {
+    "applicant_field": "custom_field_14"
+  },
+  "62440777": {
+    "applicant_field": "custom_field_9"
+  },
+  "66311611": {
+    "applicant_field": "custom_field_14"
+  },
+  "67426007": {
+    "applicant_field": "custom_field_9"
+  }
+}

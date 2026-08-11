@@ -1,0 +1,28 @@
+# ===== Python =====
+__pycache__/
+*.pyc
+*.pyo
+*.swo
+*.swp
+.DS_Store
+.idea/
+.vscode/
+
+# ===== 凭据 / 密钥（绝不入库）=====
+config.env
+server/config.env
+.env
+.env.local
+
+# ===== 运行时缓存（由平台持久化卷保存，无需入库）=====
+wecom_sync_cache.json
+scripts/wecom_sync_cache.json
+
+# ===== 开发期产物（不参与部署）=====
+tapd_oa_stories_final.json
+bidirectional_sync_engine.py
+filter_oa_stories.py
+project_list.json
+wecom_sync_config.json
+sync_files_*.json
+sync-state-*.json

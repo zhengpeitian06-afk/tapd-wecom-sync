@@ -1,0 +1,15 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+config.env
+.env
+*.md
+server/config.env.example
+scripts/wecom_sync_cache.json
+scripts/tapd_oa_stories_final.json
+scripts/bidirectional_sync_engine.py
+scripts/filter_oa_stories.py
+scripts/project_list.json
+scripts/wecom_sync_config.json
