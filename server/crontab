@@ -5,6 +5,6 @@
 # 每分钟心跳：确认 cron 服务存活（直接写容器 stdout，Rainbond 日志可见）
 * * * * * root echo "[heartbeat] $(date '+%F %T') cron alive" >> /proc/1/fd/1 2>&1
 
-# 验证期：每 5 分钟跑一次同步（不再需要到 22:10 等待，立即能验证）
-# 验证成功、表格有数据后，再改回 "0 22 * * *" 重新 build 即恢复每天执行
-*/5 * * * * root /bin/bash /app/server/sync_runner.sh >> /app/data/cron.log 2>&1
+# 验证期：每分钟跑一次同步（快速看到效果，不再等 5 分钟）
+# 验证成功、表格心跳列正常刷新后，改回 "0 22 * * *" 重新 build 即恢复每天执行
+* * * * * root /bin/bash /app/server/sync_runner.sh >> /app/data/cron.log 2>&1

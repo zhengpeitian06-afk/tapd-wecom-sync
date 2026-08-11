@@ -3,7 +3,9 @@
 # 每日同步编排脚本：拉取 TAPD -> 增量同步到企微智能表格
 # 由 deploy.sh 写入 crontab（默认每晚 22:10），也可手动执行：bash sync_runner.sh
 # ============================================================
-set -euo pipefail
+# 不用 set -e：TAPD/企微 任一凭据错误都不应阻断另一边的诊断信息。
+# 每一步用 || true 降级，所有错误都打到 stdout 和日志文件，方便排查。
+set -uo pipefail
 
 # 定位本脚本目录并加载配置
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -54,14 +56,30 @@ exec > >(tee -a "$LOG_FILE" $TEE_STDOUT) 2>&1
 echo "===== 同步开始 $(date) ====="
 
 echo "[1/2] 拉取 TAPD 需求…"
-"$PY" "$SYNC_HOME/tapd_fetcher.py" \
-  --config "$SYNC_HOME/project_oa_config.json" \
-  --output "$TAPD_RAW_JSON"
+if "$PY" "$SYNC_HOME/tapd_fetcher.py" \
+    --config "$SYNC_HOME/project_oa_config.json" \
+    --output "$TAPD_RAW_JSON"; then
+  echo "[1/2] TAPD 拉取成功：$TAPD_RAW_JSON"
+else
+  rc=$?
+  echo "[1/2] ⚠️  TAPD 拉取失败（exit=$rc）。请检查 TAPD_API_USER / TAPD_API_PASSWORD。"
+  echo "[1/2] ⚠️  继续尝试企微同步（写入空 stories 让 ensure_columns/stamp_sync_time 跑起来）"
+  # 兜底：写一个空 stories JSON，让 incremental_sync 能跑下去（用于诊断企微是否正常）
+  if [[ ! -s "$TAPD_RAW_JSON" ]]; then
+    echo '{"stories": [], "fetch_errors": 1, "fetch_error_detail": "TAPD 拉取失败，请检查 TAPD_API_USER/PASSWORD"}' > "$TAPD_RAW_JSON"
+  fi
+fi
 
 echo "[2/2] 增量同步到企微智能表格…"
-"$PY" "$SYNC_HOME/incremental_sync.py" \
-  "$TAPD_RAW_JSON" \
-  --config "$SYNC_HOME/project_oa_config.json" \
-  --cache "$WECOM_CACHE"
+if "$PY" "$SYNC_HOME/incremental_sync.py" \
+    "$TAPD_RAW_JSON" \
+    --config "$SYNC_HOME/project_oa_config.json" \
+    --cache "$WECOM_CACHE"; then
+  echo "[2/2] 企微同步成功"
+else
+  rc=$?
+  echo "[2/2] ⚠️  企微同步失败（exit=$rc）。请检查 WECOM_CORPID / WECOM_CORPSECRET，"
+  echo "[2/2] ⚠️  并确认自建应用已加入 augJOD 「可调用应用」勾选 读+写。"
+fi
 
 echo "===== 同步结束 $(date) ====="
