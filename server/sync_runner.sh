@@ -47,7 +47,10 @@ LOG_FILE="$LOG_DIR/sync_$TS.log"
 # 保留最近 30 天日志
 find "$LOG_DIR" -name 'sync_*.log' -mtime +30 -delete 2>/dev/null || true
 
-exec > >(tee -a "$LOG_FILE") 2>&1
+# 容器内写到 PID1 的 stdout（= 容器 stdout，Rainbond 日志 Tab 可直接看到）；
+# 本地/Mac 无 /proc，则只写文件，不影响本地运行。
+if [ -e /proc/1/fd/1 ]; then TEE_STDOUT="/proc/1/fd/1"; else TEE_STDOUT=""; fi
+exec > >(tee -a "$LOG_FILE" $TEE_STDOUT) 2>&1
 echo "===== 同步开始 $(date) ====="
 
 echo "[1/2] 拉取 TAPD 需求…"

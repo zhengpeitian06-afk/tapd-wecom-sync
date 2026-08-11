@@ -1,4 +1,9 @@
 # TAPD -> 企微智能表格 同步定时任务（容器内 cron，时区 Asia/Shanghai）
 # 格式：分 时 日 月 周 用户  命令
 # 默认每天 22:10 执行；如需改时间，修改此处后重新 build 镜像即可。
+
+# 每分钟心跳：确认 cron 服务存活（直接写容器 stdout，Rainbond 日志可见）
+* * * * * root echo "[heartbeat] $(date '+%F %T') cron alive" >> /proc/1/fd/1 2>&1
+
+# 每日 22:10 同步 TAPD -> 企微智能表格（脚本自身会把过程打印到容器 stdout）
 10 22 * * * root /bin/bash /app/server/sync_runner.sh >> /app/data/cron.log 2>&1
