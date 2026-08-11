@@ -10,7 +10,7 @@
 #  - 凭据通过「平台环境变量」注入（TAPD_API_USER / TAPD_API_PASSWORD /
 #    WECOM_CORPID / WECOM_CORPSECRET），不写进镜像、不进代码仓库
 #  - 缓存 / 中间文件 / 日志 落在 /app/data（Rainbond 据 VOLUME 自动持久化）
-#  - 默认自建应用自动建表并设为「企业内可编辑」（公司成员都能看到，无需手动加协作者）
+#  - 默认写回 augJOD 表（已发布给团队、大家都在看的那张），不新建表、不改共享设置
 # ============================================================
 FROM python:3.13-slim
 
@@ -22,17 +22,12 @@ RUN apt-get update \
 ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# 目标智能表格：默认留空 → 自建应用首次运行自动创建自己的表并拥有它
-# （最干净方案：augJOD 由企微连接器机器人创建、你无其权限入口，自建应用无法访问；
-#   自建应用自己建表则天然拥有全部权限，不依赖任何第三方）。
-# 若以后想复用某张已授权给本应用的表，在 Rainbond「环境变量」填 WECOM_DOCID / WECOM_SHEET_ID 覆盖即可。
-ENV WECOM_DOCID=""
-ENV WECOM_SHEET_ID=""
-
-# 可选：填你的企微「账号(userid)」，新建的表会把你额外加为管理员（双保险）。
-# 注意：即使留空也能看见表——代码已把表设为「企业内可编辑」，公司成员都可在
-# 企业微信 → 文档 中直接看到并编辑它。
-ENV WECOM_VIEWER_USERID=""
+# 目标智能表格：直接写回 augJOD 表（已发布给团队、大家都在看的那张）。
+# augJOD 由企微连接器机器人创建、已设为「企业内可编辑」，自建应用有文档接口权限
+# 即可读写（已在「协作→文档→API→可调用接口的应用」中添加本应用）。
+# 如需改用新表：把这两行清空，首次运行会自动新建一张表并输出 docid。
+ENV WECOM_DOCID="dccARy9b7NbhAPFS_noXF4INKLW__6AzlSZMmuwxov4_wUl1G6esRLxXu7XFXleFHqyYYfpgnJ25jG67EWv3p5DQ"
+ENV WECOM_SHEET_ID="augJOD"
 
 WORKDIR /app
 
