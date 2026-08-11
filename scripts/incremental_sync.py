@@ -203,6 +203,33 @@ def reconcile_cache(client, docid, sheet_id, cache, log=print):
     return cache
 
 
+def stamp_sync_time(client, docid, sheet_id, cache, log=print):
+    """运行心跳：把全部记录的『最后同步时间』列刷成当前时间。
+
+    用途：Rainbond 日志 Tab 抓不到纯 cron 容器的 stdout、Web 终端又连不上时，
+    用户无法看到任何运行证据。此函数在每次同步（无论是否有数据变更）后刷新整表
+    该列为当前时间戳，用户打开智能表格即可肉眼确认定时任务在跑；配合日志中的
+    [diff] 新增/更新/移除计数即可区分「在跑但无变更」与「真有数据变更」。
+    """
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ts = to_ms_timestamp(now)
+    recs = []
+    for tid, c in cache.items():
+        rid = c.get("record_id")
+        if rid:
+            recs.append({"record_id": rid, "values": {"最后同步时间": ts}})
+    if not recs:
+        return
+    for i in range(0, len(recs), 100):
+        batch = recs[i:i + 100]
+        try:
+            client.update_records(docid, sheet_id, batch)
+        except Exception as e:
+            log(f"[stamp] 心跳标记失败（批次 {i}）：{str(e)[:160]}")
+            return
+    log(f"[stamp] 已刷新 {len(recs)} 行『最后同步时间』= {now}")
+
+
 def guard_deletions(removed_ids, cache_ids, current_ids, fetch_errors, force, log=print):
     """删除护栏：判断本次是否允许执行删除。
 
@@ -354,6 +381,11 @@ def run_sync(current_raw, config, cache_doc, client, dry_run=False, log=print, f
 
     cache_doc["records"] = cache
     cache_doc["last_sync_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # 运行心跳：刷新整表『最后同步时间』列，用户可在智能表格直接看到同步在跑
+    try:
+        stamp_sync_time(client, docid, sheet_id, cache, log=log)
+    except Exception as e:
+        log(f"[stamp] 心跳标记异常（不影响主同步）：{str(e)[:160]}")
     return {"new": added, "changed": updated, "removed": deleted, "total": len(cache)}
 
 

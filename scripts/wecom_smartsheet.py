@@ -201,6 +201,7 @@ COLUMNS = [
     ("最后修改", "FIELD_TYPE_DATE_TIME"),
     ("状态变更时间", "FIELD_TYPE_DATE_TIME"),  # 最近一次「状态」字段变更的时间（≠ 最后修改）
     ("TAPD需求ID", "FIELD_TYPE_TEXT"),
+    ("最后同步时间", "FIELD_TYPE_DATE_TIME"),  # 运行心跳列：每次同步刷新为当前时间，用于确认定时任务在跑
 ]
 
 
